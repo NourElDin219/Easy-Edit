@@ -1,0 +1,36 @@
+﻿
+
+
+<p>Use this page to detail your site's privacy policy.</p>
+<input type="hidden" value="@ViewBag.d" id="ii" />
+<div id="dd">
+
+</div>
+<video class="controls" id="bgvid" controls="controls" width="400" height="500">
+    <source src="~/Video/1.mp4" type="video/mp4">
+
+</video>
+<button onclick="span()">hh</button>
+<script>
+    function span() {
+        var data = document.getElementById("ii");
+        var sp =  data.value;
+        //console.log(sp);
+        var ar = sp.split('/');
+        console.log(ar);
+        for (var i = 0; i < ar.length-1; i++) {
+            const parent = document.getElementById("dd");
+            const dateSpan = document.createElement('input');
+            dateSpan.innerHTML = " " + ar[i].split(',')[0] + " ";
+            console.log(ar[i].split(','));
+            dateSpan.setAttribute("id", parseInt(ar[i].split(',')[1]));
+
+            dateSpan.addEventListener("click", () => {
+                var video = document.getElementById("bgvid");
+                video.currentTime = parseInt(dateSpan.id);
+            });
+            parent.appendChild(dateSpan);
+        }
+
+    }
+</script>
