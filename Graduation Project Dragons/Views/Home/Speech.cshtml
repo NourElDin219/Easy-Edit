@@ -1,30 +1,29 @@
-﻿
+﻿<style>
+input:hover{
+                border:solid 0px;
+                background-color: azure;
+            }
+    input:focus {
+        outline: none;
+    }
+ </style>
 
-
-<p>Use this page to detail your site's privacy policy.</p>
-<input type="hidden" value="@ViewBag.d" id="ii" />
-<div id="dd">
-
-</div>
-<video class="controls" id="bgvid" controls="controls" width="400" height="500">
-    <source src="~/Video/1.mp4" type="video/mp4">
-
-</video>
-<button onclick="span()">hh</button>
 <script>
     function span() {
         var data = document.getElementById("ii");
-        var sp =  data.value;
+        var sp = data.value;
         //console.log(sp);
         var ar = sp.split('/');
         console.log(ar);
-        for (var i = 0; i < ar.length-1; i++) {
+        for (var i = 0; i < ar.length - 1; i++) {
             const parent = document.getElementById("dd");
             const dateSpan = document.createElement('input');
-            dateSpan.innerHTML = " " + ar[i].split(',')[0] + " ";
-            console.log(ar[i].split(','));
-            dateSpan.setAttribute("id", parseInt(ar[i].split(',')[1]));
-
+            dateSpan.value = " " + ar[i].split(',')[0] + " ";
+            dateSpan.style.margin = "0px";
+            dateSpan.style.padding = "0px";
+            dateSpan.style.border = "solid 0px";
+            dateSpan.style.width = (dateSpan.value.length * 6).toString() + "px";
+            dateSpan.setAttribute("id", ar[i].split(',')[1]);
             dateSpan.addEventListener("click", () => {
                 var video = document.getElementById("bgvid");
                 video.currentTime = parseInt(dateSpan.id);
@@ -33,4 +32,63 @@
         }
 
     }
+    window.addEventListener('load', (event) => {
+        span();
+    });
+    function get_Start_End() {
+        var st = GetRemovesWordsIndexs().split('#');
+        $.ajax(
+            {
+                type: "POST",
+                url: "/Home/Speech",
+                data: { v_Name:"out2",y:"1,5",z:"2,6"},
+                datatype: "json",
+            }
+        )
+    };
+    function GetRemovesWordsIndexs() {
+        var removesWordsIndex = "";
+        var inputArray = document.getElementsByTagName("input");
+        for (var i = 0; i < inputArray.length; i++) {
+            if (inputArray[i].value == "") {
+                console.log(i);
+                removesWordsIndex += i.toString() + ",";
+            }
+        }
+        console.log(removesWordsIndex);
+        var start = [];
+        var end = [];
+        var data = document.getElementById("ii");
+        var sp = data.value;
+        var ar = sp.split('/');
+        for (var i = 0; i < ar.length; i++) {
+            start[i] = ar[i].split(',')[1];
+            end[i] = ar[i].split(',')[2];
+        }
+        var s = "", e = "";
+        console.log(start);
+        console.log(end);
+        var xyz = removesWordsIndex.split(',');
+        console.log(xyz);
+        for (var i = 0; i < inputArray.length; i++) {
+            
+            s += start[parseInt(xyz[i])] + ",";
+            e += end[parseInt(xyz[i])]+ ",";
+
+        }
+        s = s + "#" + e;
+        console.log(s);
+        console.log(e);
+        return s;
+    };
 </script>
+<p>Use this page to detail your site's privacy policy.</p>
+<input type="hidden" value="@ViewBag.d" id="ii" />
+<div id="dd">
+
+</div>
+<video class="controls" onload="span()" id="bgvid" controls="controls" width="400" height="500">
+    <source src="~/Video/1.mp4" type="video/mp4">
+
+</video>
+<button onclick="get_Start_End()">k</button>

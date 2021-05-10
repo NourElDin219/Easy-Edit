@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DeepSpeechClient;
-using DeepSpeechClient.Interfaces;
 using NAudio.Wave;
 using System.Diagnostics;
 using System.IO;
+using DeepSpeechClient.Interfaces;
+using DeepSpeechClient;
 using DeepSpeechClient.Models;
-using Xabe.FFmpeg;
+using Graduation_Project_Dragons.Controllers;
 
 namespace Graduation_Project_Dragons.Models
 {
@@ -24,8 +24,10 @@ namespace Graduation_Project_Dragons.Models
         }
 
     }
+    
     public class deepspeech
     {
+
         /// <summary>
         /// Get the value of an argurment.
         /// </summary>
@@ -47,19 +49,20 @@ namespace Graduation_Project_Dragons.Models
         }
         public static void convert_To_Mp3(string x, string m_Path)
         {
-            var snippet = FFmpeg.Conversions.FromSnippet.Convert(x, m_Path);
-            snippet.Start();
+            //var snippet = FFmpeg.Conversions.FromSnippet.Convert(x, m_Path);
+            //snippet.Start();
         }
 
+        [Obsolete]
         public static string Main1(string s)
         {
             string model = null;
-            string hotwords = null;
             bool extended = false;
             model = "C:/Users/Nour El-Din/Documents/deepspeech/deepspeech-0.9.3-models.pbmm";
             var scorer = "C:/Users/Nour El-Din/Documents/deepspeech/deepspeech-0.9.3-models.scorer";
-            //hotwords = GetArgument(args, "--hot_words");
             extended = true;
+            string wwwPath = HomeController.Environment.WebRootPath;
+            string path = Path.Combine(HomeController.Environment.WebRootPath, "Video");
             Stopwatch stopwatch = new Stopwatch();
             try
             {
@@ -77,108 +80,98 @@ namespace Graduation_Project_Dragons.Models
                         Console.WriteLine("Loading scorer...");
                         sttClient.EnableExternalScorer(scorer);
                     }
-
-                    if (hotwords != null)
-                    {
-                        Console.WriteLine($"Adding hot-words {hotwords}");
-                        char[] sep = { ',' };
-                        string[] word_boosts = hotwords.Split(sep);
-                        foreach (string word_boost in word_boosts)
-                        {
-                            char[] sep1 = { ':' };
-                            string[] word = word_boost.Split(sep1);
-                            sttClient.AddHotWord(word[0], float.Parse(word[1]));
-                        }
-
-                    }
-                    Directory.SetCurrentDirectory("C:/Users/Nour El-Din/Downloads/Graduation-Project-Dragons-master/Graduation Project Dragons/wwwroot/Video");
+                    Directory.SetCurrentDirectory(path);
                     string v_Name =s.Split('.')[0];
-                    var enviroment = System.Environment.CurrentDirectory;
-                    string projectDirectory = Directory.GetParent(enviroment).Parent.FullName;
-                    Console.WriteLine(projectDirectory);
-                    string x = @$"C:/Users/Nour El-Din/Downloads/Graduation-Project-Dragons-master/Graduation Project Dragons/wwwroot/Video/{v_Name}.mp4";
-                        string m_Path = @$"C:/Users/Nour El-Din/Downloads/Graduation-Project-Dragons-master/Graduation Project Dragons/wwwroot/Video/{v_Name}.mp3";
-                        bool mp3_Found = File.Exists(m_Path) ? true : false;
-                        string w_Path = @$"C:/Users/Nour El-Din/Downloads/Graduation-Project-Dragons-master/Graduation Project Dragons/wwwroot/Video/{v_Name}.wav";
-                        bool wav_Found = File.Exists(w_Path) ? true : false;    
-                        string strCmdText;
-                        if (!mp3_Found)
-                        {
-                        //convert_To_Mp3(x, m_Path);
-                            strCmdText = $"/c ffmpeg -i {v_Name}.mp4 {v_Name}.mp3";
-                          System.Diagnostics.Process.Start("CMD.exe", strCmdText);
-                        }
-                        else if (!wav_Found)
-                        {
-                            strCmdText = $"/c ffmpeg -i {v_Name}.mp3 -acodec pcm_s16le -ac 1 -ar 16000 {v_Name}.wav";
-                            System.Diagnostics.Process.Start("CMD.exe", strCmdText);
-                        }
-                        else
-                        {
-                            string audioFile = $"C:/Users/Nour El-Din/Downloads/Graduation-Project-Dragons-master/Graduation Project Dragons/wwwroot/Video/{v_Name}.wav";
-                            var waveBuffer = new WaveBuffer(File.ReadAllBytes(audioFile));
-                            using (var waveInfo = new WaveFileReader(audioFile))
-                            {
-                                Console.WriteLine("Running inference....");
+                    string x = path+ @$"/{v_Name}.mp4";
+                    string m_Path = path+@$"/{v_Name}.mp3";
+                    bool mp3_Found = File.Exists(m_Path) ? true : false;
+                    string w_Path = path+@$"/{v_Name}.wav";
+                    bool wav_Found = File.Exists(w_Path) ? true : false;    
+                    string strCmdText;
+                    if (!mp3_Found)
+                    {
+                        strCmdText = $"/c ffmpeg -i {v_Name}.mp4 {v_Name}.mp3";
+                        Process process = new Process();
+                        process.StartInfo.FileName = "cmd.exe";
+                        process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        process.StartInfo.Arguments = strCmdText;
+                        process.Start();
+                        process.WaitForExit();
+                    }
+                        
+                    if (!wav_Found)
+                    {
+                        strCmdText = $"/c ffmpeg -i {v_Name}.mp3 -acodec pcm_s16le -ac 1 -ar 16000 {v_Name}.wav";
+                        Process process = new Process();
+                        process.StartInfo.FileName = "cmd.exe";
+                        process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        process.StartInfo.Arguments = strCmdText;
+                        process.Start();
+                        process.WaitForExit();
+                    }
+                    string audioFile = path+$"/{v_Name}.wav";
+                    var waveBuffer = new WaveBuffer(File.ReadAllBytes(audioFile));
+                    using (var waveInfo = new WaveFileReader(audioFile))
+                    {
+                         Console.WriteLine("Running inference....");
+                         stopwatch.Start();
+                         string w = "";
+                         string speechResult;
+                        // sphinx-doc: csharp_ref_inference_start
+                         if (extended)
+                         { 
+                            Metadata metaResult = sttClient.SpeechToTextWithMetadata(waveBuffer.ShortBuffer,
+                            Convert.ToUInt32(waveBuffer.MaxSize / 2), 1);
+                            speechResult = MetadataToString(metaResult.Transcripts[0]);
+                            data new_Data = new data();
+                            List<data> full_Text = new List<data>();
+                                    double word_Start = 0; ;
+                                    double word_End;
+                                    string temp = "";
+                                    int counter = 0;
+                                    int counter2 = 0;
+                            int count = 0;
+                                    foreach (var c in metaResult.Transcripts[0].Tokens)
+                                    {
+                                        counter2++;
+                                        if (counter == 0)
+                                        {
+                                            word_Start = c.StartTime;
+                                            counter++;
+                                        }
+                                        temp += c.Text;
+                                        if (c.Text == " ")
+                                        {
+                                            counter = 0;
+                                            word_End = c.StartTime;
+                                            new_Data.start = word_Start;
+                                            new_Data.end = word_End;
+                                            new_Data.word = temp;
+                                            full_Text.Add(new_Data);
+                                            w += temp + ',';
+                                            w += (int)word_Start + ",";
+                                            w += (int)word_End + "/";
+                                            temp = "";
+                                            new_Data = new data();
 
-                                stopwatch.Start();
-                                string w = "";
-                                string speechResult;
-                                // sphinx-doc: csharp_ref_inference_start
-                                if (extended)
-                                {
-
-                                    Metadata metaResult = sttClient.SpeechToTextWithMetadata(waveBuffer.ShortBuffer,
-                                    Convert.ToUInt32(waveBuffer.MaxSize / 2), 1);
-                                    speechResult = MetadataToString(metaResult.Transcripts[0]);
-                                data new_Data = new data();
-                                List<data> full_Text = new List<data>();
-                                double word_Start = 0; ;
-                                double word_End;
-                                string temp = "";
-                                int counter = 0;
-                                int counter2 = 0;
-                                foreach (var c in metaResult.Transcripts[0].Tokens)
-                                    {
-                                    counter2++;
-                                    if (counter == 0)
-                                    {
-                                        word_Start = c.StartTime;
-                                        counter++;
-                                    }
-                                    temp += c.Text;
-                                    if (c.Text == " ")
-                                    {
-                                        counter = 0;
-                                        word_End = c.StartTime;
-                                        new_Data.start = word_Start;
-                                        new_Data.end = word_End;
-                                        new_Data.word = temp;
-                                        full_Text.Add(new_Data);
-                                        w += temp+',';
-                                        w += (int)word_Start + ",";
-                                        w += (int)word_End + "/";
-                                        temp = "";
-                                        new_Data = new data();
-                                        
-                                        continue;
-                                    }
+                                            continue;
+                                        }
                                         //w += c.Text;
-                                    if (counter2 == metaResult.Transcripts[0].Tokens.Length)
-                                    {
-                                        word_End = c.StartTime;
-                                        new_Data.start = word_Start;
-                                        new_Data.end = word_End;
-                                        new_Data.word = temp;
-                                        full_Text.Add(new_Data);
-                                        w += temp + ',';
-                                        w += (int)word_Start + ",";
-                                        w += (int)word_End + "/";
-                                        temp = "";
+                                        if (counter2 == metaResult.Transcripts[0].Tokens.Length)
+                                        {
+                                            word_End = c.StartTime;
+                                            new_Data.start = word_Start;
+                                            new_Data.end = word_End;
+                                            new_Data.word = temp;
+                                            full_Text.Add(new_Data);
+                                            w += temp + ',';
+                                            w += (int)word_Start + ",";
+                                            w += (int)word_End + "/";
+                                            temp = "";
+                                        }
+                                count++;
                                     }
-
-                                    }
-                                }
+                         }
                                 else
                                 {
                                     speechResult = sttClient.SpeechToText(waveBuffer.ShortBuffer,
@@ -188,13 +181,14 @@ namespace Graduation_Project_Dragons.Models
                                 stopwatch.Stop();
                                 Console.WriteLine($"Audio duration: {waveInfo.TotalTime.ToString()}");
                                 Console.WriteLine($"Inference took: {stopwatch.Elapsed.ToString()}");
-                                Console.WriteLine((extended ? $"Extended result: " : "Recognized text: ") + speechResult);
+                        Console.WriteLine((extended ? $"Extended result: " : "Recognized text: ") + speechResult);
                                 waveBuffer.Clear();
                                 return w;
                             }
-                            
-                        }
+
+                        
                     }
+                    
             }
             catch (Exception ex)
             {
