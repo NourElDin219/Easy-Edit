@@ -44,22 +44,18 @@ namespace Graduation_Project_Dragons.Controllers
             return View();
         }
         [HttpPost]
-        public IActionResult Speech(string v_Name,string y, string z)
+        public IActionResult Speech(string v_Name, string y, string z)
         {
             var start = y.Split(',');
             var end = z.Split(',');
-            for(int i=0; i < start.Length; i++)
+            for (int i = 0; i < end.Length - 1; i++)
             {
-                if (i == 0)
-                {
-                    cut_Video(Convert.ToDouble(start[i]), 0.0, v_Name, i);
-                    continue;
-                }
-                cut_Video(Convert.ToDouble(start[i]), Convert.ToDouble(end[i-1]), v_Name, i);
+                cut_Video(Convert.ToDouble(start[i]), Convert.ToDouble(end[i]), v_Name, i);
             }
-            //ViewBag.d = w;
+            merge_Videos(v_Name);
             return View();
         }
+
         [HttpPost]
         [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
         [Obsolete]
@@ -94,33 +90,11 @@ namespace Graduation_Project_Dragons.Controllers
         }
         static void cut_Video(double start, double end, string v_Name, int index)
         {
-            int sec = (int)start, min = 0, hours = 0;
-            if (start >= 60)
-            {
-                min = (int)start / 60;
-                sec = (int)start % 60;
-            }
-            if (min >= 60)
-            {
-                hours = min / 60;
-                min = (int)min % 60;
-            }
-            int sec2 = (int)end, min2 = 0, hours2 = 0;
-            if (end >= 60)
-            {
-                min2 = (int)end / 60;
-                sec2 = (int)end % 60;
-            }
-            if (min2 >= 60)
-            {
-                hours2 = min2 / 60;
-                min2 = (int)min2 % 60;
-            }
-            TimeSpan timeSpan = new TimeSpan(hours, min, sec);
-            TimeSpan timeSpan2 = new TimeSpan(hours2, min2, sec2);
+            TimeSpan timeSpan = TimeSpan.FromSeconds(start);
+            TimeSpan timeSpan2 = TimeSpan.FromSeconds(end);
             string time = timeSpan.ToString();
-            string time2= timeSpan2.ToString();
-            string strCmdText = $"/c ffmpeg -i {v_Name}.mp4 -ss {time2} -to {time} -async 1  {v_Name}{index.ToString()}.mp4 -y";
+            string time2 = timeSpan2.ToString();
+            string strCmdText = $"/c ffmpeg -i {v_Name}.mp4 -ss {time} -to {time2} -async 1  {v_Name}_{index.ToString()}.mp4 -y";
             Process process = new Process();
             process.StartInfo.FileName = "cmd.exe";
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
@@ -128,7 +102,20 @@ namespace Graduation_Project_Dragons.Controllers
             process.Start();
             process.WaitForExit();
         }
-
+        static void merge_Videos(string v_Name)
+        {
+            string strCmdText = $"/c (for %i in ({v_Name}_*.mp4) do @echo file '%i') > list.txt";
+            Process process = new Process();
+            process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            process.StartInfo.Arguments = strCmdText;
+            process.Start();
+            process.WaitForExit();
+            strCmdText = $"/c ffmpeg -f concat -i list.txt -c copy {v_Name}_final.mp4";
+            process.StartInfo.Arguments = strCmdText;
+            process.Start();
+            process.WaitForExit();
+        }
         public IActionResult Privacy()
         {
             return View();

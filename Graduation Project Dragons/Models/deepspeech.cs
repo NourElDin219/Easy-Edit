@@ -149,8 +149,8 @@ namespace Graduation_Project_Dragons.Models
                                             new_Data.word = temp;
                                             full_Text.Add(new_Data);
                                             w += temp + ',';
-                                            w += (int)word_Start + ",";
-                                            w += (int)word_End + "/";
+                                            w += (double)word_Start + ",";
+                                            w += (double)word_End + "/";
                                             temp = "";
                                             new_Data = new data();
 
@@ -165,8 +165,8 @@ namespace Graduation_Project_Dragons.Models
                                             new_Data.word = temp;
                                             full_Text.Add(new_Data);
                                             w += temp + ',';
-                                            w += (int)word_Start + ",";
-                                            w += (int)word_End + "/";
+                                            w += (double)word_Start + ",";
+                                            w += (double)word_End + "/";
                                             temp = "";
                                         }
                                 count++;
@@ -185,8 +185,6 @@ namespace Graduation_Project_Dragons.Models
                                 waveBuffer.Clear();
                                 return w;
                             }
-
-                        
                     }
                     
             }

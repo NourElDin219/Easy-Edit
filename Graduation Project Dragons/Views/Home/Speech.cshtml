@@ -1,12 +1,13 @@
 ﻿<style>
-input:hover{
-                border:solid 0px;
-                background-color: azure;
-            }
+    input:hover {
+        border: solid 0px;
+        background-color: azure;
+    }
+
     input:focus {
         outline: none;
     }
- </style>
+</style>
 
 <script>
     function span() {
@@ -14,7 +15,7 @@ input:hover{
         var sp = data.value;
         //console.log(sp);
         var ar = sp.split('/');
-        console.log(ar);
+
         for (var i = 0; i < ar.length - 1; i++) {
             const parent = document.getElementById("dd");
             const dateSpan = document.createElement('input');
@@ -36,26 +37,33 @@ input:hover{
         span();
     });
     function get_Start_End() {
-        var st = GetRemovesWordsIndexs().split('#');
+        var se = GetRemovesWordsIndexs();
+        var start_end = se.split('#');
         $.ajax(
             {
+
                 type: "POST",
                 url: "/Home/Speech",
-                data: { v_Name:"out2",y:"1,5",z:"2,6"},
+                data: { v_Name: "out2", y: start_end[0], z: start_end[1] },
                 datatype: "json",
             }
         )
+        document.getElementById("out2_final").src = "~/Video/out2_final.mp4";
+        $("#out2_final").attr("src", "out2_final.mp4");
+
+
     };
     function GetRemovesWordsIndexs() {
         var removesWordsIndex = "";
         var inputArray = document.getElementsByTagName("input");
-        for (var i = 0; i < inputArray.length; i++) {
-            if (inputArray[i].value == "") {
-                console.log(i);
-                removesWordsIndex += i.toString() + ",";
-            }
-        }
-        console.log(removesWordsIndex);
+        // console.log("input = ");
+        var SrartIndex = 0;        for (var i = 1; i < inputArray.length; i++) {            var x = "";
+            for (var j = 0; j < inputArray[i].value.length; j++) {
+                if (inputArray[i].value[j] >= 'a' && inputArray[i].value[j] <= 'z')
+                    x += inputArray[i].value[j];
+            }            if (x != "") { SrartIndex = i; break; }        }
+        var counter = 0;
+        var s = "", e = "";
         var start = [];
         var end = [];
         var data = document.getElementById("ii");
@@ -65,20 +73,36 @@ input:hover{
             start[i] = ar[i].split(',')[1];
             end[i] = ar[i].split(',')[2];
         }
-        var s = "", e = "";
-        console.log(start);
-        console.log(end);
-        var xyz = removesWordsIndex.split(',');
-        console.log(xyz);
-        for (var i = 0; i < inputArray.length; i++) {
-            
-            s += start[parseInt(xyz[i])] + ",";
-            e += end[parseInt(xyz[i])]+ ",";
 
+        for (var i = SrartIndex; i < inputArray.length; i++) {
+            console.log(inputArray[i].value);
+            var x = "";
+            for (var j = 0; j < inputArray[i].value.length; j++) {
+                if (inputArray[i].value[j] >= 'a' && inputArray[i].value[j] <= 'z')
+                    x += inputArray[i].value[j];
+            }
+            if (x != "" && counter == 0) {
+                s += start[i-1] + ',';
+                counter++;
+            }
+
+            if (x == "" && counter>0) {
+                console.log("i = " + i.toString());
+                removesWordsIndex += i.toString() + ",";
+                console.log(counter);
+                counter = 0;
+                e += start[i-1]+',';
+            }
+            if (i == inputArray.length - 1) {
+                if (x != "") {
+                    e += end[i-1];
+                }
+
+                else
+                    e += start[i-1];
+            }
         }
         s = s + "#" + e;
-        console.log(s);
-        console.log(e);
         return s;
     };
 </script>
@@ -88,7 +112,12 @@ input:hover{
 
 </div>
 <video class="controls" onload="span()" id="bgvid" controls="controls" width="400" height="500">
-    <source src="~/Video/1.mp4" type="video/mp4">
-
+    <source src="~/Video/2.mp4" type="video/mp4">
+    
 </video>
+<div id="outputVideo">
+    <video class="controls" onload="span()" id="outvideo" controls="controls" width="400" height="500">
+        <source type="video/mp4">
+    </video>
+</div>
 <button onclick="get_Start_End()">k</button>
