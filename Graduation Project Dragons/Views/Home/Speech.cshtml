@@ -57,11 +57,15 @@
         var removesWordsIndex = "";
         var inputArray = document.getElementsByTagName("input");
         // console.log("input = ");
-        var SrartIndex = 0;        for (var i = 1; i < inputArray.length; i++) {            var x = "";
+        var SrartIndex = 0;
+        for (var i = 1; i < inputArray.length; i++) {
+            var x = "";
             for (var j = 0; j < inputArray[i].value.length; j++) {
                 if (inputArray[i].value[j] >= 'a' && inputArray[i].value[j] <= 'z')
                     x += inputArray[i].value[j];
-            }            if (x != "") { SrartIndex = i; break; }        }
+            }
+            if (x != "") { SrartIndex = i; break; }
+        }
         var counter = 0;
         var s = "", e = "";
         var start = [];

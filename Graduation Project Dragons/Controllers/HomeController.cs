@@ -91,10 +91,10 @@ namespace Graduation_Project_Dragons.Controllers
         static void cut_Video(double start, double end, string v_Name, int index)
         {
             TimeSpan timeSpan = TimeSpan.FromSeconds(start);
-            TimeSpan timeSpan2 = TimeSpan.FromSeconds(end);
+            double ms = (end - start) * 1000;
             string time = timeSpan.ToString();
-            string time2 = timeSpan2.ToString();
-            string strCmdText = $"/c ffmpeg -i {v_Name}.mp4 -ss {time} -to {time2} -async 1  {v_Name}_{index.ToString()}.mp4 -y";
+            string time2 = ms.ToString();
+            string strCmdText = $"/c ffmpeg -i {v_Name}.mp4 -ss {time} -t {time2}ms -async 1  {v_Name}_{index.ToString()}.mp4 -y";
             Process process = new Process();
             process.StartInfo.FileName = "cmd.exe";
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
